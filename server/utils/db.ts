@@ -6,12 +6,15 @@ export async function connectDB() {
     const config = useRuntimeConfig();
     const mongodbUri = config.mongodbUri || 'mongodb://localhost:27017/meal-planner';
 
-    await mongoose.connect(mongodbUri, {
-      // These are included in the type but not needed explicitly since they're default in newer versions
-      // useNewUrlParser: true,
-      // useUnifiedTopology: true,
-      // useCreateIndex: true,
-    });
+    const options = {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 10s
+      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+      family: 4, // Use IPv4, skip trying IPv6
+      maxPoolSize: 10, // Maintain up to 10 socket connections
+      minPoolSize: 5, // Maintain at least 5 socket connections
+    };
+
+    await mongoose.connect(mongodbUri, options);
 
     console.log('Connected to MongoDB successfully');
 
@@ -37,6 +40,7 @@ export async function connectDB() {
 
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
-    process.exit(1);
+    // Don't exit the process, let the application handle the error
+    throw error;
   }
 } 
